@@ -3,8 +3,9 @@
 REST API for the Hunter Douglas Platinum Gateway. See [libhdplatinum](https://github.com/vincer/libhdplatinum)
 for more details on features supported.
 
-(I use REST a little liberally here. Note HATEOAS here. Also, I take some other liberties for the sake
-of simplicity and easier client integration.)
+(I use REST a little liberally here. No HATEOAS here. Also, I take some other liberties for the sake
+of simplicity and easier client integration. Depending on future client development, this may or may not
+change.)
 
 ## Routes
 
@@ -72,4 +73,4 @@ there isn't a whole lot of error checking, so you can likely expect some 500s.
 
 ## Height Range
 
-Unline `libhdplatinum`, `platypus` uses a height range normalized to 0-100 (100 is fully open).
+Unlike `libhdplatinum`, `platypus` uses a height range normalized to 0-100 (100 is fully open).
