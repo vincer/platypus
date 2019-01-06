@@ -2,13 +2,12 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/Azure/azure-sdk-for-go/core/http"
+	"github.com/op/go-logging"
 	"github.com/urfave/cli"
+	"github.com/vincer/platypus/lib"
+	"net"
 	"os"
 	"strings"
-	"net"
-	"github.com/op/go-logging"
-	"github.com/vincer/platypus/lib"
 )
 
 var Log = lib.Log
@@ -36,25 +35,25 @@ func main() {
 
 	flags := []cli.Flag{
 		cli.StringFlag{
-			Name: "hdp-ip",
+			Name:  "hdp-ip",
 			Usage: "ip address of the Hunter Douglas Platinum Gateway. Required.",
 		},
 		cli.IntFlag{
-			Name: "hdp-port",
+			Name:  "hdp-port",
 			Value: 522,
 			Usage: "port of the Hunter Douglas Platinum Gateway.",
 		},
 		cli.IntFlag{
-			Name: "ttl",
+			Name:  "ttl",
 			Value: 10,
 			Usage: "How long, in seconds, to keep shade data cached in memory.",
 		},
 		cli.BoolFlag{
-			Name: "d",
+			Name:  "d",
 			Usage: "Output debug logs",
 		},
 		cli.BoolFlag{
-			Name: "help, h",
+			Name:  "help, h",
 			Usage: "Show usage help.",
 		},
 	}
@@ -64,9 +63,9 @@ func main() {
 	app.Action = func(c *cli.Context) error {
 		lib.Config = lib.ConfigType{
 			CacheTimeoutSeconds: c.Int("ttl"),
-			Ip: c.String("hdp-ip"),
-			Port: c.Int("hdp-port"),
-			Verbose: c.Bool("d"),
+			Ip:                  c.String("hdp-ip"),
+			Port:                c.Int("hdp-port"),
+			Verbose:             c.Bool("d"),
 		}
 		initLogging()
 		exitError := validate(c)
@@ -96,15 +95,15 @@ func main() {
 
 func GetShades(c *gin.Context) {
 	Log.Debug("Getting all shade information")
-	c.JSON(http.StatusOK, lib.GetShadeViews())
+	c.JSON(200, lib.GetShadeViews())
 }
 
 func GetShade(c *gin.Context) {
 	shade, err := lib.FindShade(c.Param("id"))
-	if (err != nil) {
-		c.JSON(http.StatusNotFound, lib.Response{Code: http.StatusNotFound, Message: "Not found"})
+	if err != nil {
+		c.JSON(404, lib.Response{Code: 400, Message: "Not found"})
 	} else {
-		c.JSON(http.StatusOK, lib.ShadeViewFromShade(shade))
+		c.JSON(200, lib.ShadeViewFromShade(shade))
 	}
 }
 
@@ -113,22 +112,22 @@ func UpdateShade(c *gin.Context) {
 	var newShade lib.ShadeView
 	bindErr := c.BindJSON(&newShade)
 	if bindErr == nil {
-		newHeight := int(float64(newShade.Height) / 100 * lib.MaxShadeHeight + 0.5)
+		newHeight := int(float64(newShade.Height)/100*lib.MaxShadeHeight + 0.5)
 		Log.Info("Queueing update request")
 		work := lib.UpdateRequest{Id: id, Height: newHeight}
 		lib.UpdateQueue <- work
 
 		//shade, _ := findShade(id)
-		c.JSON(http.StatusOK, newShade)
+		c.JSON(200, newShade)
 	} else {
-		c.JSON(http.StatusBadRequest, lib.Response{Code: http.StatusBadRequest, Message: "Bad request"})
+		c.JSON(400, lib.Response{Code: 400, Message: "Bad request"})
 	}
 
 	//return
 	//log.Info("Updating shade", id)
 	//shade, err := findShade(id)
 	//if (err != nil) {
-	//	c.JSON(http.StatusNotFound, lib.Response{Code: http.StatusNotFound, Message: "Not found"})
+	//	c.JSON(404, lib.Response{Code: 404, Message: "Not found"})
 	//} else {
 	//	shade.SetHeight(newHeight)
 	//}
