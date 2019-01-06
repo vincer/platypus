@@ -37,6 +37,7 @@ func main() {
 		cli.StringFlag{
 			Name:  "hdp-ip",
 			Usage: "ip address of the Hunter Douglas Platinum Gateway. Required.",
+			EnvVar: "PLATYPUS_HDP_IP",
 		},
 		cli.IntFlag{
 			Name:  "hdp-port",
